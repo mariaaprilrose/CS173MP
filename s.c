@@ -13,7 +13,7 @@ int main(int argc , char *argv[])
 {
     int socket_desc , new_socket , c , *new_sock;
     struct sockaddr_in server , client;
-    char *message;
+    char message[256];
      
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
@@ -25,8 +25,8 @@ int main(int argc , char *argv[])
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons( 8888 );
-     
+    server.sin_port = htons(1115);
+    
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
     {
@@ -46,7 +46,7 @@ int main(int argc , char *argv[])
         puts("Connection accepted");
          
         //Reply to the client
-        message = "Hello Client , I have received your connection. And now I will assign a handler for you\n";
+        strcpy(message, "Hello Client , I have received your connection. And now I will assign a handler for you\n");
         write(new_socket , message , strlen(message));
          
         pthread_t sniffer_thread;
@@ -69,32 +69,35 @@ int main(int argc , char *argv[])
         perror("accept failed");
         return 1;
     }
-     
+    close(socket_desc);
     return 0;
 }
  
 /*
  * This will handle connection for each client
  * */
-void *connection_handler(void *socket_desc)
-{
+void *connection_handler(void *socket_desc){
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
     int read_size;
     char *message , client_message[2000];
      
     //Send some messages to the client
+    //FIRST MESSAGE SEND
     message = "Greetings! I am your connection handler\n";
-    write(sock , message , strlen(message));
-     
-    message = "Now type something and i shall repeat what you type \n";
-    write(sock , message , strlen(message));
-     
+    write(sock , message , strlen(message));     
+    memset(client_message,0,strlen(client_message));
     //Receive a message from client
+    //2ND MESSAGE RECIEVED
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
     {
         //Send the message back to client
-        write(sock , client_message , strlen(client_message));
+        //SEND BACK MESSAGE OF WHAT IS RECIEVED
+        printf("client message is %s\n",client_message);
+        puts("Retuning sent message to check if still right");
+        write(sock , message , strlen(message));
+  
+        
     }
      
     if(read_size == 0)
@@ -106,7 +109,7 @@ void *connection_handler(void *socket_desc)
     {
         perror("recv failed");
     }
-         
+
     //Free the socket pointer
     free(socket_desc);
      

@@ -4,13 +4,14 @@
 #include <netinet/in.h>
 #include <string.h>
 
+
 int main(int argc, char *argv[])
 {
-   int sock_desc, portno, n;
+   int socket_desc, portno, len, read_size;
    struct sockaddr_in serv_addr;
    struct hostent *server;
    
-   char buffer[256];
+   char message[256], server_message[1024];
    
    if (argc <3) {
       fprintf(stderr,"usage %s hostname port\n", argv[0]);
@@ -44,32 +45,106 @@ int main(int argc, char *argv[])
       perror("ERROR connecting");
       exit(1);
    }
+
+   /* Now read server response */
+   //FIRST MESSAGE RECIEVED
+   bzero(server_message,256);
+   len = read(socket_desc, server_message, 255);
+   printf("%s\n", server_message);
+
+
+
+   printf("Please enter the message: ");
+   scanf("%s", message);
+    /* Send message to the server*/
+
+   //2ND MESSAGE SEND
+   write(socket_desc, message, strlen(message));
+   read(socket_desc, server_message, 255);
+   printf("server: message %s\n", server_message );
+
+
+   while((read_size = recv(socket_desc , server_message , 2000 , 0)) > 0){
+   	printf("server's message %s\n", server_message );
+
+   	printf("Choose What to do \n");
+    printf("[1] View Files [2] Send Files [3] Download, [4] Quit \n");
+    scanf("%s", message);
+    printf("message: %s\n", message );
+
+	   if (strcmp("1", message)== 0){
+	   		write(socket_desc , message , strlen(message));
+	   		printf("one\n");
+	   }
+	   else if(strcmp(message, "4")==0){
+	   		write(socket_desc , message , strlen(message));
+	   		printf("4\n");
+	   }
+	   else{
+	   		
+	   		printf("elsedfuck\n");
+	   		break;
+	   	}
+	}
+
+   return 0;
+}
+
    
    /* Now ask for a message from the user, this message
    * will be read by server
    */
+   /*
    printf("Please enter the message: ");
-   bzero(buffer,256);
-   fgets(buffer,255,stdin);
+   bzero(message,256);
+   fgets(message,255,stdin);*/
    
-   /* Send message to the server */
-   n = write(socket_desc, buffer, strlen(buffer));
+   /* Send message to the server*/
+/*  	len = write(socket_desc, message, strlen(message));
    
-   if (n < 0)
+   if (len < 0)
    {
       perror("ERROR writing to socket");
       exit(1);
    }
-   
+*/
    /* Now read server response */
-   bzero(buffer,256);
-   n = read(socket_desc, buffer, 255);
+/*    bzero(message,256);
+   	len = read(socket_desc, message, 255);
    
-   if (n < 0)
+   if (len < 0){
+      perror("ERROR reading from socket");
+      exit(1);
+   } 
+
+   printf("%s\n", message);*/
+
+
+/*  while( (read_size = recv(socket_desc , message , 2000 , 0)) > 0 )
+    {
+
+        //Send the message back to server
+        printf("Please enter the message: ");
+        bzero(message,256);
+        fgets(message,255,stdin);
+
+        len= write(socket_desc , message , strlen(message));
+
+        if (len < 0){
+      		perror("ERROR writing to socket");
+      		exit(1);
+   		}
+
+   		len = read(socket_desc, message, 255);
+   		if (len < 0){
+      		perror("ERROR reading from socket");
+      		exit(1);
+   		printf("%s\n", message);
+   		}
+
+    }
+   if (len < 0)
    {
       perror("ERROR reading from socket");
       exit(1);
-   }
-   printf("%s\n",buffer);
-   return 0;
-}
+   }*/
